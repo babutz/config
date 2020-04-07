@@ -1,0 +1,187 @@
+Building configuration...
+
+Current configuration : 5415 bytes
+!
+version 12.4
+no service pad
+service timestamps debug uptime
+service timestamps log datetime msec
+service password-encryption
+!
+hostname Miass2
+!
+boot-start-marker
+boot-end-marker
+!
+logging buffered 51200 warnings
+no logging console
+enable secret 5 %hash%
+!
+aaa new-model
+!
+!
+aaa authentication banner ^C
+G-MIA
+
+This is a proprietary system, NOT for public or personal use.  All work
+products, communications, files, data or information directly or indirectly
+created, input or accessed on this system are and shall become the sole
+property of the company.  This system is actively monitored and accessed by
+the company.  By logging onto this system, the user consents to such monitoring
+and access.
+
+USE OF THIS SYSTEM WITHOUT OR IN EXCESS OF THE PROPER AUTHORIZATION MAY
+SUBJECT THE USER TO DISCIPLINE AND/OR CIVIL AND CRIMINAL PENALTIES
+^C
+aaa authentication login default local
+aaa authorization exec default local
+!
+aaa session-id common
+!
+resource policy
+!
+clock timezone +0500 5
+clock summer-time +0600 recurring last Sun Mar 2:00 last Sun Oct 3:00
+ip subnet-zero
+ip cef
+!
+!
+ip dhcp excluded-address 10.10.10.1
+!
+!
+no ip domain lookup
+ip domain name yourdomain.com
+vpdn enable
+!
+!
+!
+crypto pki trustpoint TP-self-signed-950137482
+ enrollment selfsigned
+ subject-name cn=IOS-Self-Signed-Certificate-950137482
+ revocation-check none
+ rsakeypair TP-self-signed-950137482
+!
+!
+crypto pki certificate chain TP-self-signed-950137482
+ certificate self-signed 01
+  %key%
+  quit
+!
+spanning-tree portfast bpduguard
+spanning-tree uplinkfast max-update-rate 0
+no spanning-tree vlan 1
+spanning-tree vlan 2 priority 65535
+no spanning-tree vlan 2
+!
+!
+!
+!
+!
+!
+interface Tunnel0
+ description Chel-Holding
+ ip address 192.168.194.1 255.255.255.252
+ ip virtual-reassembly
+ ip tcp adjust-mss 1436
+ tunnel source 194.213.122.90
+ tunnel destination 217.64.138.114
+ tunnel mode ipip
+!
+interface Tunnel42
+ description Kurgan
+ ip address 192.168.194.10 255.255.255.252
+ ip virtual-reassembly
+ ip tcp adjust-mss 1436
+ tunnel source 194.213.122.90
+ tunnel destination 78.108.64.58
+ tunnel mode ipip
+!
+interface Tunnel41
+ description Chel-Holding (reserv)
+ ip address 192.168.194.6 255.255.255.252
+ ip virtual-reassembly
+ ip tcp adjust-mss 1436
+ tunnel source 194.213.122.90
+ tunnel destination 91.206.66.190
+ tunnel mode ipip
+!
+interface ATM0
+ no ip address
+ shutdown
+ no atm ilmi-keepalive
+ dsl operating-mode auto
+!
+interface ATM0.1 point-to-point
+ pvc 8/35
+  pppoe-client dial-pool-number 1
+ !
+!
+interface FastEthernet0
+ description Uplink
+ switchport access vlan 2
+ load-interval 30
+ duplex full
+ spanning-tree vlan 2 cost 1
+ spanning-tree cost 65535
+!
+interface FastEthernet1
+ description Local Net
+!
+interface FastEthernet2
+ description Local Net Vlan 1
+ duplex full
+ speed 100
+!
+interface FastEthernet3
+!
+interface Vlan1
+ description Local Net
+ ip address 192.168.21.1 255.255.255.0
+ ip nat inside
+ ip virtual-reassembly
+ ip tcp adjust-mss 1452
+!
+interface Vlan2
+ description UpLink ISP
+ ip address 194.213.122.90 255.255.255.252
+ ip nat outside
+ ip virtual-reassembly
+!
+ip classless
+ip route 0.0.0.0 0.0.0.0 194.213.122.89
+ip route 192.168.0.0 255.255.0.0 Tunnel41
+!
+!
+no ip http server
+ip http access-class 23
+ip http authentication local
+no ip http secure-server
+ip http timeout-policy idle 60 life 86400 requests 10000
+ip nat translation max-entries 50000
+!
+ip access-list standard deny-any
+ deny   any
+!
+logging 192.168.6.3
+access-list 90 permit 192.168.6.0 0.0.0.255
+access-list 90 permit 192.168.0.0 0.0.255.255
+access-list 90 permit any
+access-list 101 permit ip 192.168.6.0 0.0.0.255 any
+no cdp run
+!
+!
+control-plane
+!
+!
+line con 0
+ no modem enable
+line aux 0
+line vty 0 4
+ access-class 90 in
+ exec-timeout 0 0
+ privilege level 15
+ transport input telnet ssh
+!
+scheduler max-task-time 5000
+sntp server 192.168.6.2
+end

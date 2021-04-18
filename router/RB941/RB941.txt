@@ -1,0 +1,57 @@
+# apr/06/2020 22:17:16 by RouterOS 6.42.7
+# software id = {censorship}
+#
+# model = RB941-2nD
+# serial number = {censorship}
+/interface bridge
+add fast-forward=no name=bridge-lan
+/interface wireless
+set [ find default-name=wlan1 ] band=2ghz-b/g/n comment=Wi-Fi disabled=no \
+    mode=ap-bridge ssid=\
+    "\F0\9F\90\B1\F0\9F\91\82\F0\9F\91\83\F0\9F\91\80\F0\9F\92\A9"
+/interface ethernet
+set [ find default-name=ether1 ] comment=WAN
+/interface wireless manual-tx-power-table
+set wlan1 comment=Wi-Fi
+/interface wireless nstreme
+set wlan1 comment=Wi-Fi
+/interface wireless security-profiles
+set [ find default=yes ] authentication-types=wpa2-psk eap-methods="" mode=\
+    dynamic-keys supplicant-identity=MikroTik wpa2-pre-shared-key={censorship}
+/ip pool
+add name=dhcp_pool0 ranges=192.168.100.20-192.168.100.200
+/ip dhcp-server
+add address-pool=dhcp_pool0 disabled=no interface=bridge-lan lease-time=5h \
+    name=dhcp1
+/interface bridge port
+add bridge=bridge-lan interface=ether2
+add bridge=bridge-lan interface=ether3
+add bridge=bridge-lan interface=ether4
+add bridge=bridge-lan interface=wlan1
+/ip address
+add address={censorship}/24 interface=ether1 network={censorship}
+add address=192.168.100.1/24 interface=bridge-lan network=192.168.100.0
+/ip dhcp-server network
+add address=192.168.100.0/24 gateway=192.168.100.1
+/ip dns
+set allow-remote-requests=yes servers={censorship},{censorship}
+/ip firewall filter
+add action=accept chain=input protocol=icmp
+add action=accept chain=input connection-state=established in-interface=\
+    ether1
+add action=accept chain=input connection-state=related in-interface=ether1
+add action=drop chain=input in-interface=ether1
+/ip firewall nat
+add action=masquerade chain=srcnat out-interface=ether1
+/ip route
+add distance=1 gateway={censorship}
+/ip service
+set telnet disabled=yes
+set ftp disabled=yes
+set www disabled=yes
+set api disabled=yes
+set api-ssl disabled=yes
+/system clock
+set time-zone-name=Asia/Yekaterinburg
+/system routerboard settings
+set silent-boot=no
